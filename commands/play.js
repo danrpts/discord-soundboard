@@ -1,4 +1,9 @@
 async function execute(message, args) {
+  if (args.length !== 1) {
+    message.reply("invalid syntax. !play <shortname|fullname>");
+    return;
+  }
+
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel) return;
 
@@ -6,7 +11,9 @@ async function execute(message, args) {
     const connection = await voiceChannel.join();
     await connection.voice.setSelfDeaf(true);
 
-    const name = args.length ? args.join("-").toLowerCase() : "titanic-flute";
+    // const name = args.length ? args.join("-").toLowerCase() : "titanic-flute";
+
+    const name = global.guildAliases[message.guild.id][args[0]] || args[0];
 
     const url = `https://www.myinstants.com/media/sounds/${name}.mp3`;
 
@@ -21,6 +28,7 @@ async function execute(message, args) {
   } catch (e) {
     // todo: handle exeptions
     console.error(e);
+    throw e;
   }
 }
 

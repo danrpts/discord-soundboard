@@ -1,12 +1,16 @@
 async function execute(message, args) {
-  const voiceChannel = message.member.voice.channel;
-  if (!voiceChannel) return;
+  if (args.length !== 2) {
+    message.reply("invalid syntax. !alias <shortname> <fullname>");
+    return;
+  }
 
   try {
-    // todo
+    global.guildAliases[message.guild.id][args[0]] = args[1];
+    await require("./play.js").execute(message, [args[0]]);
   } catch (e) {
     // todo: handle exeptions
     console.error(e);
+    throw e;
   }
 }
 
