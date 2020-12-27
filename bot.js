@@ -1,50 +1,32 @@
 require("dotenv").config();
 
+const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
+client.commands = new Discord.Collection();
+
+const commandFiles = fs
+  .readdirSync("./commands")
+  .filter(name => name.endsWith(".js"));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
 
 client.on("message", handleMessage);
 
-async function handleMessage(msg) {
+async function handleMessage(message) {
+  if (!message.guild) return;
+  if (message.author.bot) return;
+
+  const [command, ...args] = message.content.trim().split(/\s+/);
+  if (!client.commands.has(command)) return;
+
   try {
-    if (!msg.guild) return;
-    if (msg.author.bot) return;
-
-    const [command, ...args] = msg.content.trim().split(/\s+/);
-
-    if (!command) return;
-
-    console.info({ command, args });
-
-    switch (command.toLowerCase()) {
-      case "!stop":
-        // todo
-        break;
-
-      case "!play":
-        if (msg.member.voice.channel) {
-          const connection = await msg.member.voice.channel.join();
-          await connection.voice.setSelfDeaf(true);
-
-          const name = args.length
-            ? args.join("-").toLowerCase()
-            : "titanic-flute";
-
-          const url = `https://www.myinstants.com/media/sounds/${name}.mp3`;
-
-          const dispatcher = connection.play(url, {
-            quality: "highestaudio",
-            volume: false
-          });
-
-          dispatcher.on("start", () => {
-            msg.react("👍");
-          });
-        }
-        break;
-    }
+    await client.commands.get(command).execute(message, args);
   } catch (e) {
-    //todo
+    // todo: handle exeptions
   }
 }
 
