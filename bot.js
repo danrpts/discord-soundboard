@@ -2,24 +2,19 @@ require("dotenv").config();
 
 const path = require("path");
 const yargs = require("yargs");
+const Keyv = require("keyv");
 const Discord = require("discord.js");
-const client = new Discord.Client();
 
-const { DEAFULT_ALIASES } = require("./constants");
+const aliases = new Keyv(process.env.URI, { namespace: "aliases" });
+const client = new Discord.Client();
 
 async function handler(message) {
   if (!message.guild) return;
   if (message.author.bot) return;
 
-  // todo: use redis or pg
-  global.aliases = global.aliases || {};
-  global.aliases[message.guild.id] = global.aliases[message.guild.id] || {
-    ...DEAFULT_ALIASES
-  };
-
   try {
     yargs
-      .middleware(argv => ({ message, argv }))
+      .middleware(argv => ({ aliases, message, argv }))
       .help()
       .commandDir("commands")
       .version(false)
@@ -35,5 +30,9 @@ async function handler(message) {
   }
 }
 
+aliases.on("error", err =>
+  console.error(`Keyv 'aliases' connection error: ${err}`)
+);
 client.on("message", handler);
+client.on("error", err => console.error(`Discord connection error: ${err}`));
 client.login();

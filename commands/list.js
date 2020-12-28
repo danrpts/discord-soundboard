@@ -1,47 +1,59 @@
-const { DEAFULT_ALIASES } = require("../constants");
-
-async function handler({ message, argv }) {
-  if (argv.delete && global.aliases[message.guild.id][argv.alias]) {
-    delete global.aliases[message.guild.id][argv.alias];
-    return message.react("👍");
-  }
+async function handler({ aliases, message, argv }) {
+  let guildAliases = (await aliases.get(message.guild.id)) || {};
 
   if (argv.clear) {
-    global.aliases[message.guild.id] = {};
-    return message.react("👍");
+    guildAliases = {};
+    await aliases.clear(message.guild.id);
   }
 
-  if (argv.reset) {
-    global.aliases[message.guild.id] = { ...DEAFULT_ALIASES };
+  if (argv.remove) {
+    delete guildAliases[argv.remove];
+    await aliases.set(message.guild.id, guildAliases);
   }
 
-  const list = JSON.stringify(
-    global.aliases[message.guild.id],
-    undefined,
-    2
-  ).replace(/[\{\}\"]/g, "");
+  const isEmpty = Object.keys(guildAliases).length < 1;
 
-  return message.reply(list);
+  let response = "";
+
+  if (argv.clear) {
+    response =
+      "alright I cleaned up all aliases. Use `play <name> -a <alias>` to add another.";
+  } else if (argv.remove && isEmpty) {
+    response =
+      "I removed the alias and noticed your guild no longer has any! Use `play <name> -a <alias>` to add one.";
+  } else if (argv.remove && !isEmpty) {
+    response = `no problem. Here's what I have now: \n${JSON.stringify(
+      guildAliases,
+      undefined,
+      2
+    )}`;
+  } else if (!argv.remove && isEmpty) {
+    response =
+      "your guild has no aliases yet. Use `play <name> -a <alias>` to get started!";
+  } else {
+    response = `Here's what I have for your guild: \n${JSON.stringify(
+      guildAliases,
+      undefined,
+      2
+    )}`;
+  }
+
+  return message.reply(response);
 }
 
 module.exports = {
-  command: "!list [alias]",
-  describe: "Show current mp3 alias list for guild",
+  command: "!list",
+  describe: "Show the current mp3-alias list for your guild",
   builder: {
     c: {
       alias: "clear",
-      describe: "Clear the alias list",
+      describe: "Purge the entire alias list",
       type: "boolean"
-    },
-    d: {
-      alias: "delete",
-      describe: "Delete [alias] from the list",
-      type: "string"
     },
     r: {
-      alias: "reset",
-      describe: "Reset the alias list to default",
-      type: "boolean"
+      alias: "remove",
+      describe: "Remove the supplied alias from the list",
+      type: "string"
     }
   },
   handler
