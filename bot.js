@@ -1,40 +1,39 @@
 require("dotenv").config();
 
-const fs = require("fs");
+const path = require("path");
+const yargs = require("yargs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
-client.commands = new Discord.Collection();
 
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter(name => name.endsWith(".js"));
+const { DEAFULT_ALIASES } = require("./constants");
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.name, command);
-}
-
-client.on("message", handleMessage);
-
-async function handleMessage(message) {
+async function handler(message) {
   if (!message.guild) return;
   if (message.author.bot) return;
 
   // todo: use redis or pg
-  global.guildAliases = global.guildAliases || {};
-  global.guildAliases[message.guild.id] =
-    global.guildAliases[message.guild.id] || {};
-
-  const [command, ...args] = message.content.trim().split(/\s+/);
-  if (!client.commands.has(command)) return;
-
-  console.info({ command, args });
+  global.aliases = global.aliases || {};
+  global.aliases[message.guild.id] = global.aliases[message.guild.id] || {
+    ...DEAFULT_ALIASES
+  };
 
   try {
-    await client.commands.get(command).execute(message, args);
+    yargs
+      .middleware(argv => ({ message, argv }))
+      .help()
+      .commandDir("commands")
+      .version(false)
+      .parse(message.content, (error, argv, output) => {
+        if (error || argv.help || argv.version) {
+          const filename = path.basename(__filename);
+          const usage = output.replace(new RegExp(filename, "gi"), "");
+          message.reply(`\n${usage}`);
+        }
+      });
   } catch (e) {
-    // todo: handle exeptions
+    console.error(e);
   }
 }
 
+client.on("message", handler);
 client.login();
