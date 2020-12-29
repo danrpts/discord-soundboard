@@ -4,38 +4,30 @@ async function handler({ aliases, message, argv }) {
   if (argv.clear) {
     guildAliases = {};
     await aliases.clear(message.guild.id);
-  }
-
-  if (argv.remove) {
+  } else if (guildAliases[argv.remove]) {
     delete guildAliases[argv.remove];
     await aliases.set(message.guild.id, guildAliases);
   }
 
   const isEmpty = Object.keys(guildAliases).length < 1;
+  const table = JSON.stringify(guildAliases, undefined, 2);
 
   let response = "";
-
   if (argv.clear) {
     response =
       "alright I cleaned up all aliases. Use `play <name> -a <alias>` to add another.";
+  } else if (argv.remove && !guildAliases[argv.remove]) {
+    response = "that alias does not exist.";
   } else if (argv.remove && isEmpty) {
     response =
       "I removed the alias and noticed your guild no longer has any! Use `play <name> -a <alias>` to add one.";
   } else if (argv.remove && !isEmpty) {
-    response = `no problem. Here's what I have now: \n${JSON.stringify(
-      guildAliases,
-      undefined,
-      2
-    )}`;
+    response = `no problem. Here's what I have now: \n${table}`;
   } else if (!argv.remove && isEmpty) {
     response =
       "your guild has no aliases yet. Use `play <name> -a <alias>` to get started!";
   } else {
-    response = `Here's what I have for your guild: \n${JSON.stringify(
-      guildAliases,
-      undefined,
-      2
-    )}`;
+    response = `Here's what I have for your guild: \n${table}`;
   }
 
   return message.reply(response);

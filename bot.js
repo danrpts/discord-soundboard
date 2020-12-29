@@ -5,12 +5,13 @@ const yargs = require("yargs");
 const Keyv = require("keyv");
 const Discord = require("discord.js");
 
-const aliases = new Keyv(process.env.URI, { namespace: "aliases" });
+const aliases = new Keyv(process.env.DATABASE_URL, {
+  namespace: "aliases"
+});
 const client = new Discord.Client();
 
 async function handler(message) {
-  if (!message.guild) return;
-  if (message.author.bot) return;
+  if (!message.guild || message.author.bot) return;
 
   try {
     yargs
