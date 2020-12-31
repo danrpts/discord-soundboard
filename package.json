@@ -1,11 +1,11 @@
 {
-  "name": "star-flute",
+  "name": "discord-star-flute",
   "version": "0.0.0",
   "description": "Discord Sound Board Bot Application",
   "main": "index.js",
   "engines": {
-    "node": "15.x",
-    "npm": "*"
+    "node": "15.5.0",
+    "yarn": "1.22.10"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,12 +17,14 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
     "@keyv/postgres": "^1.0.16",
+    "commando-provider-keyv": "^2.1.0",
     "discord.js": "^12.5.1",
+    "discord.js-commando": "https://github.com/discordjs/Commando.git",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "ffmpeg-static": "^4.2.7",
     "keyv": "^4.0.3",
-    "yargs": "^16.2.0"
+    "lodash": "^4.17.20"
   },
   "resolutions": {
     "@keyv/postgres/pg": "^8.5.1"

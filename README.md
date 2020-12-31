@@ -1,23 +1,24 @@
+# discord-star-flute
+
+A friendly and customizable soundboard bot for Discord.
+
+## Requirements
+
+## Installation
+
+`git clone https://github.com/danrpts/star-flute.git`
+
+## Configuration
+
+Configuration for the bot is done through `.env` file. These variables will be loaded into the environment on boot.
+
+| Environment Variable | Required             | Description                                                                          |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------ |
+| DISCORD_TOKEN        | true                 | The bot's Discord token created here https://discord.com/developers/applications     |
+| DATABASE_URL         | true                 | PostgresSQL URL used to store guild level settings.                                  |
+| MP3_HOST             | true                 | URL of the host that will be used to source mp3s                                     |
+| PREFIX               | no (defaults to `!`) | The default prefix the bot will use unless specified by the `prefix` command is used |
+| OWNER_ID             | no                   | The Discord user id who owns the bot.                                                |
+| DEBUG                | no                   | Flag used to log debug info to terminal.                                             |
+
 ## Usage
-
-```
-!play <name>
-
-Play an mp3 sourced from https://www.myinstants.com over voice channel
-
-Options:
-     --help      Show help                                            [boolean]
- -a, --alias     Set a quick alias for the mp3                         [string]
- -o, --original  Ignore the alias and play the original mp3           [boolean]
-```
-
-```
-!list
-
-Show the current mp3-alias list for your guild
-
-Options:
-     --help    Show help                                              [boolean]
- -c, --clear   Purge the entire alias list                            [boolean]
- -r, --remove  Remove the supplied alias from the list                 [string]
-```

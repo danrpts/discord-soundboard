@@ -1,39 +1,63 @@
 require("dotenv").config();
 
 const path = require("path");
-const yargs = require("yargs");
 const Keyv = require("keyv");
-const Discord = require("discord.js");
+const KeyvProvider = require("commando-provider-keyv");
 
-const aliases = new Keyv(process.env.DATABASE_URL, {
-  namespace: "aliases"
+const { Client } = require("discord.js-commando");
+
+const client = new Client({
+  owner: process.env.OWNER_ID,
+  commandPrefix: process.env.PREFIX
 });
-const client = new Discord.Client();
 
-async function handler(message) {
-  if (!message.guild || message.author.bot) return;
+client.setProvider(new KeyvProvider(new Keyv(process.env.DATABASE_URL)));
 
-  try {
-    yargs
-      .middleware(argv => ({ aliases, message, argv }))
-      .help()
-      .commandDir("commands")
-      .version(false)
-      .parse(message.content, (error, argv, output) => {
-        if (error || argv.help || argv.version) {
-          const filename = path.basename(__filename);
-          const usage = output.replace(new RegExp(filename, "gi"), "");
-          message.reply(`\n${usage}`);
-        }
-      });
-  } catch (e) {
-    console.error(e);
-  }
+if (process.env.DEBUG) {
+  client.on("debug", console.info);
 }
 
-aliases.on("error", err =>
-  console.error(`Keyv 'aliases' connection error: ${err}`)
-);
-client.on("message", handler);
-client.on("error", err => console.error(`Discord connection error: ${err}`));
+client.on("error", console.error);
+
+client.on("ready", () => {
+  console.log(
+    `bot logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`
+  );
+});
+
+client.on("voiceStateUpdate", async (oldState, newState) => {
+  const oldChannelId = oldState.channelID;
+  const newChannelId = newState.channelID;
+
+  // user joined voice channel
+  if (!oldChannelId && newChannelId) {
+    const guildId = newState.guild.id;
+    const guildAliases = await client.provider.get(guildId, "aliases", {});
+    const guildGreetings = await client.provider.get(
+      newState.guild.id,
+      "greetings",
+      {}
+    );
+    const connection = await newState.channel.join();
+    await newState.setSelfDeaf(true);
+
+    const greeting = guildGreetings[newState.member.user.id];
+    const name = guildAliases[greeting] || greeting;
+    const url = `${process.env.MP3_HOST}/${name}.mp3`;
+
+    connection.play(url, {
+      quality: "highestaudio",
+      volume: false
+    });
+  }
+});
+
+client.registry
+  .registerDefaults()
+  .registerGroups([
+    ["soundboard", "Soundboard Commands"],
+    ["settings", "Settings Commands"]
+  ])
+  .registerCommandsIn(path.join(__dirname, "commands"));
+
 client.login();
