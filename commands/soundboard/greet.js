@@ -55,7 +55,7 @@ class PlayCommand extends Command {
         const url = `${process.env.MP3_HOST}/${sound}.mp3`;
         connection.play(url, {
           quality: "highestaudio",
-          volume: false
+          volume: 0.75
         });
       }
     }

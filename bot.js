@@ -47,7 +47,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
     connection.play(url, {
       quality: "highestaudio",
-      volume: false
+      volume: 0.75
     });
   }
 });

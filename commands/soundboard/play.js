@@ -24,13 +24,6 @@ class PlayCommand extends Command {
           prompt: "What would you like to alias this sound as?",
           default: "",
           type: "string"
-        },
-        {
-          key: "mentions",
-          prompt:
-            "Who would you like to play the sound for when they join the voice channel?",
-          default: [],
-          type: "string"
         }
       ]
     });
@@ -59,7 +52,7 @@ class PlayCommand extends Command {
     const url = `${process.env.MP3_HOST}/${sound}.mp3`;
     const dispatcher = connection.play(url, {
       quality: "highestaudio",
-      volume: false
+      volume: 0.75
     });
 
     dispatcher.on("start", async () => msg.react("👍"));
