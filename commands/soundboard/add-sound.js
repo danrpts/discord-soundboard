@@ -1,12 +1,12 @@
 const { Command } = require("discord.js-commando");
 
-class AddCommand extends Command {
+class AddSoundCommand extends Command {
   constructor(client) {
     super(client, {
-      name: "sound",
-      aliases: ["s"],
+      name: "add-sound",
+      aliases: ["add", "as", "s"],
       group: "soundboard",
-      memberName: "add",
+      memberName: "add-sound",
       description: `Add a sound to the guild's soundboard. I'll reply with 👍 once I've jotted it down.`,
       guildOnly: true,
       examples: [
@@ -41,7 +41,7 @@ class AddCommand extends Command {
     const sounds = await this.client.provider.get(guildId, "sounds", {});
     await this.client.provider.set(guildId, "sounds", {
       ...sounds,
-      [args.sound]: {
+      [args.sound.toLowerCase()]: {
         url: args.url,
         volume: Math.floor(args.volume)
       }
@@ -51,4 +51,4 @@ class AddCommand extends Command {
   }
 }
 
-module.exports = AddCommand;
+module.exports = AddSoundCommand;

@@ -1,12 +1,12 @@
 const { Command } = require("discord.js-commando");
 
-class GreetCommand extends Command {
+class AddGreetCommand extends Command {
   constructor(client) {
     super(client, {
-      name: "greeting",
-      aliases: ["g"],
+      name: "add-greeting",
+      aliases: ["greeting", "ag", "g"],
       group: "soundboard",
-      memberName: "greeting",
+      memberName: "add-greeting",
       description:
         "Add a greeting for the mentioned user when entering the voice channel. I'll reply with 👍 once I've jotted it down.",
       guildOnly: true,
@@ -37,11 +37,18 @@ class GreetCommand extends Command {
   async run(msg, args) {
     const guildId = msg.guild.id;
 
+    const sounds = await this.client.provider.get(guildId, "sounds", {});
+    const sound = sounds[args.sound.toLowerCase()];
+    if (!sound) {
+      await msg.reply("that sounds does not exist.");
+      return;
+    }
+
     const greetings = await this.client.provider.get(guildId, "greetings", {});
     await this.client.provider.set(guildId, "greetings", {
       ...greetings,
       [args.user]: {
-        sound: args.sound,
+        sound: args.sound.toLowerCase(),
         volume: Math.floor(args.volume)
       }
     });
@@ -50,4 +57,4 @@ class GreetCommand extends Command {
   }
 }
 
-module.exports = GreetCommand;
+module.exports = AddGreetCommand;

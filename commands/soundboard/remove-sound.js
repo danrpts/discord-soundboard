@@ -26,7 +26,7 @@ class RemoveSoundCommand extends Command {
     const sounds = await this.client.provider.get(guildId, "sounds", {});
     await this.client.provider.set(guildId, "sounds", {
       ...sounds,
-      [args.sound]: undefined
+      [args.sound.toLowerCase()]: undefined
     });
 
     await msg.react("👍");

@@ -30,15 +30,15 @@ class RenameSoundCommand extends Command {
 
     const sounds = await this.client.provider.get(guildId, "sounds", {});
 
-    if (!sounds[args.oldSound]) {
+    if (!sounds[args.oldSound.toLowerCase()]) {
       await msg.reply("that sounds does not exist.");
       return;
     }
 
     await this.client.provider.set(guildId, "sounds", {
       ...sounds,
-      [args.oldSound]: undefined,
-      [args.newSound]: sounds[args.oldSound]
+      [args.oldSound.toLowerCase()]: undefined,
+      [args.newSound.toLowerCase()]: sounds[args.oldSound.toLowerCase()]
     });
 
     await msg.react("👍");

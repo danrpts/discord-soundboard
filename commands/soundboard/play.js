@@ -40,7 +40,7 @@ class PlayCommand extends Command {
     await connection.voice.setSelfDeaf(true);
 
     const sounds = await this.client.provider.get(guildId, "sounds", {});
-    const sound = sounds[args.sound];
+    const sound = sounds[args.sound.toLowerCase()];
 
     if (!sound) {
       await msg.reply("that sounds does not exist.");
