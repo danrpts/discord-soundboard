@@ -43,7 +43,8 @@ class PlayCommand extends Command {
     const sound = sounds[args.sound];
 
     if (!sound) {
-      return msg.reply("that sounds does not exist.");
+      await msg.reply("that sounds does not exist.");
+      return;
     }
 
     const volume = Math.floor(args.volume) || sound.volume;
