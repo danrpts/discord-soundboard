@@ -6,7 +6,12 @@ A friendly and customizable soundboard bot for Discord.
 
 ## Installation
 
-`git clone https://github.com/danrpts/discord-star-flute.git`
+```
+git clone https://github.com/danrpts/discord-star-flute.git
+cd discord-star-flute
+yarn i
+foreman
+```
 
 ## Configuration
 

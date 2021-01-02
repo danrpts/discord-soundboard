@@ -8,7 +8,7 @@ const { Client } = require("discord.js-commando");
 
 const client = new Client({
   owner: process.env.OWNER_ID,
-  commandPrefix: process.env.PREFIX
+  commandPrefix: process.env.COMMAND_PREFIX
 });
 
 client.setProvider(new KeyvProvider(new Keyv(process.env.DATABASE_URL)));
@@ -21,7 +21,7 @@ client.on("error", console.error);
 
 client.on("ready", () => {
   console.log(
-    `bot logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`
+    `${client.user.username}#${client.user.discriminator} (${client.user.id}) ready.`
   );
 });
 
@@ -32,32 +32,40 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // user joined voice channel
   if (!oldChannelId && newChannelId) {
     const guildId = newState.guild.id;
-    const guildAliases = await client.provider.get(guildId, "aliases", {});
-    const guildGreetings = await client.provider.get(
+    const user = newState.member.user;
+
+    const sounds = await client.provider.get(guildId, "sounds", {});
+    const greetings = await client.provider.get(
       newState.guild.id,
       "greetings",
       {}
     );
+
     const connection = await newState.channel.join();
     await newState.setSelfDeaf(true);
+    const greeting = greetings[user];
 
-    const greeting = guildGreetings[newState.member.user.id];
-    const name = guildAliases[greeting] || greeting;
-    const url = `${process.env.MP3_HOST}/${name}.mp3`;
+    if (greeting) {
+      const sound = sounds[greeting.sound];
 
-    connection.play(url, {
-      quality: "highestaudio",
-      volume: 0.75
-    });
+      if (!sound) {
+        return;
+      }
+
+      console.log(
+        `playing ${greeting.sound} (${sound.url}) ${greeting.volume}%`
+      );
+      connection.play(sound.url, {
+        quality: "highestaudio",
+        volume: greeting.volume / 100
+      });
+    }
   }
 });
 
 client.registry
   .registerDefaults()
-  .registerGroups([
-    ["soundboard", "Soundboard Commands"],
-    ["settings", "Settings Commands"]
-  ])
+  .registerGroups([["soundboard", "Soundboard Commands"]])
   .registerCommandsIn(path.join(__dirname, "commands"));
 
 client.login();
