@@ -3,7 +3,7 @@ const { Command } = require("discord.js-commando");
 const { Sound, Greeting } = require("../../models");
 const { clamp } = require("lodash");
 
-async function page({ guildId, pageSize, index }) {
+async function page({ guildId, index, pageSize }) {
   const greetings = await Greeting.findAll({
     limit: pageSize,
     offset: pageSize * index,
@@ -93,6 +93,7 @@ class ListGreetingsCommand extends Command {
             index = pageCount - 1;
             break;
         }
+
         index = clamp(index, 0, pageCount - 1);
         await pageMsg.edit(
           `Page ${index +
@@ -100,14 +101,18 @@ class ListGreetingsCommand extends Command {
           {
             embed: await page({
               guildId,
-              pageSize,
               index,
+              pageSize,
               greetingCount,
               pageCount
             })
           }
         );
-        await reaction.users.remove(user);
+
+        // todo: alert user of missing permissions
+        if (msg.guild.me.hasPermission("MANAGE_MESSAGES")) {
+          await reaction.users.remove(user);
+        }
       });
 
       collector.on("end", pageMsg.reactions.removeAll);
