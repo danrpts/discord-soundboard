@@ -15,7 +15,8 @@ const client = new Client({
 client.setProvider(
   new KeyvProvider(
     new Keyv(process.env.DATABASE_URL, {
-      namespace: "settings"
+      table: "settings",
+      namespace: "guildId"
     })
   )
 );
