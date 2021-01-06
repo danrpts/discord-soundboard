@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando");
+const { Greeting } = require("../../models");
 
 class RemoveGreetingCommand extends Command {
   constructor(client) {
@@ -7,7 +8,7 @@ class RemoveGreetingCommand extends Command {
       aliases: ["rg"],
       group: "soundboard",
       memberName: "remove-greeting",
-      description: "Removes a greeting from the guild's soundboard.",
+      description: "Removes a greeting from your guild's soundboard.",
       guildOnly: true,
       examples: [`${client.commandPrefix}rg \`@danny\``],
       args: [
@@ -22,12 +23,16 @@ class RemoveGreetingCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
+    const user = args.user;
 
-    const greetings = await this.client.provider.get(guildId, "greetings", {});
-    await this.client.provider.set(guildId, "greetings", {
-      ...greetings,
-      [args.user]: undefined
+    const destroyedCount = await Greeting.destroy({
+      where: { guild_id: guildId, user_id: user.toString() },
+      limit: 1
     });
+
+    if (destroyedCount < 1) {
+      return msg.reply("that greeting does not exist.");
+    }
 
     await msg.react("👍");
   }

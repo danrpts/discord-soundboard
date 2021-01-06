@@ -1,14 +1,15 @@
 const { Command } = require("discord.js-commando");
+const { Sound, Greeting } = require("../../models");
 
-class AddGreetCommand extends Command {
+class AddGreetingCommand extends Command {
   constructor(client) {
     super(client, {
       name: "add-greeting",
-      aliases: ["greeting", "ag", "g"],
+      aliases: ["g"],
       group: "soundboard",
       memberName: "add-greeting",
       description:
-        "Add a greeting for the mentioned user when entering the voice channel. I'll reply with 👍 once I've jotted it down.",
+        "Add a greeting for the mentioned user when entering the voice channel.",
       guildOnly: true,
       examples: [`${client.commandPrefix}g \`@danny\` trumpet`],
       args: [
@@ -18,13 +19,13 @@ class AddGreetCommand extends Command {
           type: "user"
         },
         {
-          key: "sound",
+          key: "name",
           prompt: "What sound would you like to play?",
           type: "string"
         },
         {
           key: "volume",
-          prompt: "What % volume would you like play the sound at?",
+          prompt: "At what % volume would you like play that sound?",
           default: 75,
           max: 100,
           min: 0,
@@ -36,25 +37,30 @@ class AddGreetCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
+    const creatorId = msg.author.toString();
+    const userId = args.user.toString();
+    const name = args.name.toLowerCase();
 
-    const sounds = await this.client.provider.get(guildId, "sounds", {});
-    const sound = sounds[args.sound.toLowerCase()];
+    const sound = await Sound.findOne({
+      where: { guild_id: guildId, name: name }
+    });
+
     if (!sound) {
-      await msg.reply("that sounds does not exist.");
-      return;
+      return msg.reply("that sounds does not exist.");
     }
 
-    const greetings = await this.client.provider.get(guildId, "greetings", {});
-    await this.client.provider.set(guildId, "greetings", {
-      ...greetings,
-      [args.user]: {
-        sound: args.sound.toLowerCase(),
-        volume: Math.floor(args.volume)
-      }
+    const volume = args.volume ? Math.floor(args.volume) : null;
+
+    await Greeting.upsert({
+      guild_id: guildId,
+      creator_id: creatorId,
+      name,
+      user_id: userId,
+      volume
     });
 
     await msg.react("👍");
   }
 }
 
-module.exports = AddGreetCommand;
+module.exports = AddGreetingCommand;

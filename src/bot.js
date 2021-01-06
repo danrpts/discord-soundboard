@@ -3,6 +3,7 @@ require("dotenv").config();
 const path = require("path");
 const Keyv = require("keyv");
 const KeyvProvider = require("commando-provider-keyv");
+const { Sound, Greeting } = require("./models");
 
 const { Client } = require("discord.js-commando");
 
@@ -11,7 +12,13 @@ const client = new Client({
   commandPrefix: process.env.COMMAND_PREFIX
 });
 
-client.setProvider(new KeyvProvider(new Keyv(process.env.DATABASE_URL)));
+client.setProvider(
+  new KeyvProvider(
+    new Keyv(process.env.DATABASE_URL, {
+      namespace: "settings"
+    })
+  )
+);
 
 if (process.env.DEBUG) {
   client.on("debug", console.info);
@@ -34,30 +41,30 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     const guildId = newState.guild.id;
     const user = newState.member.user;
 
-    const sounds = await client.provider.get(guildId, "sounds", {});
-    const greetings = await client.provider.get(
-      newState.guild.id,
-      "greetings",
-      {}
-    );
-
-    const connection = await newState.channel.join();
-    await newState.setSelfDeaf(true);
-    const greeting = greetings[user];
+    const greeting = await Greeting.findOne({
+      where: { guild_id: guildId, user_id: user.toString() }
+    });
 
     if (greeting) {
-      const sound = sounds[greeting.sound];
+      const connection = await newState.channel.join();
+      await newState.setSelfDeaf(true);
+
+      // todo: association
+      const sound = await Sound.findOne({
+        where: { guild_id: guildId, name: greeting.name }
+      });
 
       if (!sound) {
         return;
       }
 
-      console.log(
-        `playing ${greeting.sound} (${sound.url}) ${greeting.volume}%`
-      );
+      const volume = greeting.volume || sound.volume;
+
+      console.log(`playing ${sound.name} (${sound.url}) ${volume}%`);
+
       connection.play(sound.url, {
         quality: "highestaudio",
-        volume: greeting.volume / 100
+        volume: volume / 100
       });
     }
   }

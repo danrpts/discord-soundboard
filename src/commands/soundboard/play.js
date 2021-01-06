@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando");
+const { Sound } = require("../../models");
 
 class PlayCommand extends Command {
   constructor(client) {
@@ -7,18 +8,18 @@ class PlayCommand extends Command {
       aliases: ["p"],
       group: "soundboard",
       memberName: "play",
-      description: `Plays a sound over your current voice channel. If the sound exists on ${process.env.MP3_HOST} I will reply with 👍.`,
+      description: `Plays a sound over your current voice channel.`,
       guildOnly: true,
-      examples: [`${client.commandPrefix}p flute`],
+      examples: [`${client.commandPrefix}play flute`],
       args: [
         {
-          key: "sound",
+          key: "name",
           prompt: "What sound would you like to play?",
           type: "string"
         },
         {
           key: "volume",
-          prompt: "What % volume would you like play the sound at?",
+          prompt: "At what % volume would you like play that sound?",
           default: "",
           max: 100,
           min: 0,
@@ -33,22 +34,24 @@ class PlayCommand extends Command {
     const voiceChannel = msg.member.voice.channel;
 
     if (!voiceChannel) {
-      return msg.reply("join a voice channel to play that sound.");
+      return msg.reply("please join a voice channel to play that sound.");
     }
 
     const connection = await voiceChannel.join();
     await connection.voice.setSelfDeaf(true);
 
-    const sounds = await this.client.provider.get(guildId, "sounds", {});
-    const sound = sounds[args.sound.toLowerCase()];
+    const sound = await Sound.findOne({
+      where: { guild_id: guildId, name: args.name.toLowerCase() }
+    });
 
     if (!sound) {
-      await msg.reply("that sounds does not exist.");
-      return;
+      return msg.reply("that sounds does not exist.");
     }
 
     const volume = Math.floor(args.volume) || sound.volume;
-    console.log(`playing ${args.sound} (${sound.url}) ${volume}%`);
+
+    console.log(`playing ${sound.name} (${sound.url}) ${volume}%`);
+
     const dispatcher = connection.play(sound.url, {
       quality: "highestaudio",
       volume: volume / 100
