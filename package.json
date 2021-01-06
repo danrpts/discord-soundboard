@@ -1,7 +1,7 @@
 {
   "name": "discord-star-flute",
   "version": "0.0.0",
-  "description": "A friendly and customizable soundboard bot for Discord backed with mp3 from your host of choice!",
+  "description": "A friendly and customizable soundboard bot for Discord!",
   "main": "index.js",
   "engines": {
     "node": "15.5.0",

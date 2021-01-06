@@ -51,10 +51,9 @@ class AddGreetingCommand extends Command {
 
     const volume = args.volume ? Math.floor(args.volume) : null;
 
-    await Greeting.upsert({
+    await sound.createGreeting({
       guild_id: guildId,
       creator_id: creatorId,
-      name,
       user_id: userId,
       volume
     });

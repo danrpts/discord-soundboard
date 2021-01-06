@@ -1,17 +1,18 @@
 const { MessageEmbed } = require("discord.js");
 const { Command } = require("discord.js-commando");
-const { Greeting } = require("../../models");
+const { Sound, Greeting } = require("../../models");
 const { clamp } = require("lodash");
 
 async function page({ guildId, pageSize, index }) {
   const greetings = await Greeting.findAll({
     limit: pageSize,
     offset: pageSize * index,
-    where: { guild_id: guildId }
+    where: { guild_id: guildId },
+    include: Sound
   });
 
-  const fields = greetings.map(({ user_id, name, volume }) => ({
-    name: `${name} @ ${volume}%`,
+  const fields = greetings.map(({ user_id, Sound, volume }) => ({
+    name: `${Sound.name} @ ${volume}%`,
     value: user_id,
     inline: true
   }));

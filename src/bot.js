@@ -39,30 +39,24 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // user joined voice channel
   if (!oldChannelId && newChannelId) {
     const guildId = newState.guild.id;
-    const user = newState.member.user;
+    const userId = newState.member.user.toString();
 
     const greeting = await Greeting.findOne({
-      where: { guild_id: guildId, user_id: user.toString() }
+      where: { guild_id: guildId, user_id: userId },
+      include: Sound
     });
 
     if (greeting) {
       const connection = await newState.channel.join();
       await newState.setSelfDeaf(true);
 
-      // todo: association
-      const sound = await Sound.findOne({
-        where: { guild_id: guildId, name: greeting.name }
-      });
+      const volume = greeting.volume || greeting.Sound.volume;
 
-      if (!sound) {
-        return;
-      }
+      console.log(
+        `playing ${greeting.Sound.name} (${greeting.Sound.url}) ${volume}%`
+      );
 
-      const volume = greeting.volume || sound.volume;
-
-      console.log(`playing ${sound.name} (${sound.url}) ${volume}%`);
-
-      connection.play(sound.url, {
+      connection.play(greeting.Sound.url, {
         quality: "highestaudio",
         volume: volume / 100
       });
