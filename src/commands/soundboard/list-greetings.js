@@ -8,7 +8,8 @@ async function page({ guildId, index, pageSize }) {
     limit: pageSize,
     offset: pageSize * index,
     where: { guild_id: guildId },
-    include: Sound
+    include: Sound,
+    order: [["Sound", "name", "ASC"]]
   });
 
   const fields = greetings.map(({ user_id, Sound, volume }) => ({

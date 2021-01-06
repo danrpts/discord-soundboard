@@ -7,7 +7,8 @@ async function page({ guildId, index, pageSize }) {
   const sounds = await Sound.findAll({
     limit: pageSize,
     offset: pageSize * index,
-    where: { guild_id: guildId }
+    where: { guild_id: guildId },
+    order: [["name", "ASC"]]
   });
 
   const fields = sounds.map(({ name, url, volume }) => ({
