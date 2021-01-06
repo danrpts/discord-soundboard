@@ -7,13 +7,12 @@ const sequelize = new Sequelize(process.env.DATABASE_URL);
 const Sound = SoundModel(sequelize, Sequelize);
 const Greeting = GreetingModel(sequelize, Sequelize);
 Sound.hasMany(Greeting, {
-  onDelete: "CASCADE"
-});
-Greeting.belongsTo(Sound, {
+  onDelete: "CASCADE",
   foreignKey: {
     allowNull: false
   }
 });
+Greeting.belongsTo(Sound);
 
 (async () => {
   await sequelize.sync({ alter: true });
