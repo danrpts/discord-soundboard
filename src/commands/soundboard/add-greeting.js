@@ -26,7 +26,7 @@ class AddGreetingCommand extends Command {
         {
           key: "volume",
           prompt: "At what % volume would you like play that sound?",
-          default: 75,
+          default: "",
           max: 100,
           min: 0,
           type: "integer"
@@ -49,7 +49,7 @@ class AddGreetingCommand extends Command {
       return msg.reply("that sounds does not exist.");
     }
 
-    const volume = args.volume ? Math.floor(args.volume) : null;
+    const volume = args.volume ? Math.floor(args.volume) : sound.volume;
 
     await sound.createGreeting({
       guild_id: guildId,

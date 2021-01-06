@@ -27,7 +27,7 @@ class AddCommand extends Command {
         {
           key: "volume",
           prompt: "At what % volume would you like play that sound?",
-          default: "",
+          default: 50,
           max: 100,
           min: 0,
           type: "integer"
@@ -52,7 +52,7 @@ class AddCommand extends Command {
       );
     }
 
-    const volume = args.volume ? Math.floor(args.volume) : null;
+    const volume = Math.floor(args.volume);
 
     await Sound.create({
       guild_id: guildId,
