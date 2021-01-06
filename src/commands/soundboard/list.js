@@ -3,19 +3,24 @@ const { MessageEmbed } = require("discord.js");
 const { Command } = require("discord.js-commando");
 const { Sound } = require("../../models");
 const { clamp } = require("lodash");
+const { Op } = require("sequelize");
 
 async function page({
   guildId,
   index,
   pageSize,
   pageCount,
-  soundCount,
-  color
+  resultCount,
+  color,
+  filter
 }) {
   const sounds = await Sound.findAll({
     limit: pageSize,
     offset: pageSize * index,
-    where: { guild_id: guildId },
+    where: {
+      guild_id: guildId,
+      ...(filter && { name: { [Op.like]: `%${filter}%` } })
+    },
     order: [["name", "ASC"]]
   });
 
@@ -25,11 +30,12 @@ async function page({
     inline: true
   }));
 
+  const footer = `Page ${index + 1} / ${pageCount} • ${resultCount} results`;
+
   return new MessageEmbed()
     .setColor(color)
-    .setTitle(`Page ${index + 1} / ${pageCount}`)
     .addFields(fields)
-    .setFooter(`${soundCount} total sounds`);
+    .setFooter(footer);
 }
 
 class ListCommand extends Command {
@@ -43,12 +49,10 @@ class ListCommand extends Command {
       guildOnly: true,
       args: [
         {
-          key: "pageSize",
-          prompt: "How many sound to show per page?",
-          default: 12,
-          max: 12,
-          min: 1,
-          type: "integer"
+          key: "filter",
+          prompt: "Would you like to filter the list with a search term?",
+          default: "",
+          type: "string"
         }
       ]
     });
@@ -56,15 +60,21 @@ class ListCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const soundCount = await Sound.count({ where: { guild_id: guildId } });
+    const filter = args.filter;
+    const resultCount = await Sound.count({
+      where: {
+        guild_id: guildId,
+        ...(filter && { name: { [Op.like]: `%${filter}%` } })
+      }
+    });
 
-    if (soundCount < 1) {
+    if (resultCount < 1) {
       return msg.reply("your guild's soundboard is empty.");
     }
 
     let index = 0;
-    const pageSize = args.pageSize;
-    const pageCount = Math.ceil(soundCount / pageSize);
+    const pageSize = 12;
+    const pageCount = Math.ceil(resultCount / pageSize);
 
     const colors = colormap({
       colormap: "portland",
@@ -76,11 +86,12 @@ class ListCommand extends Command {
     const pageMsg = await msg.channel.send({
       embed: await page({
         guildId,
-        pageSize,
         index,
-        soundCount,
+        pageSize,
         pageCount,
-        color: colors[index]
+        resultCount,
+        color: colors[index],
+        filter
       })
     });
 
@@ -115,9 +126,10 @@ class ListCommand extends Command {
             guildId,
             index,
             pageSize,
-            soundCount,
             pageCount,
-            color: colors[index]
+            resultCount,
+            color: colors[index],
+            filter
           })
         });
 

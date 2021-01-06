@@ -9,7 +9,7 @@ async function page({
   index,
   pageSize,
   pageCount,
-  greetingCount,
+  resultCount,
   color
 }) {
   const greetings = await Greeting.findAll({
@@ -26,11 +26,12 @@ async function page({
     inline: true
   }));
 
+  const footer = `Page ${index + 1} / ${pageCount} • ${resultCount} results`;
+
   return new MessageEmbed()
     .setColor(color)
-    .setTitle(`Page ${index + 1} / ${pageCount}`)
     .addFields(fields)
-    .setFooter(`${greetingCount} total greetings`);
+    .setFooter(footer);
 }
 
 class ListGreetingsCommand extends Command {
@@ -41,33 +42,23 @@ class ListGreetingsCommand extends Command {
       group: "soundboard",
       memberName: "list-greetings",
       description: "List all greetings for your guild.",
-      guildOnly: true,
-      args: [
-        {
-          key: "pageSize",
-          prompt: "How many greetings to show per page?",
-          default: 12,
-          max: 12,
-          min: 1,
-          type: "integer"
-        }
-      ]
+      guildOnly: true
     });
   }
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const greetingCount = await Greeting.count({
+    const resultCount = await Greeting.count({
       where: { guild_id: guildId }
     });
 
-    if (greetingCount < 1) {
+    if (resultCount < 1) {
       return msg.reply("your guild's greetings are empty.");
     }
 
     let index = 0;
-    const pageSize = args.pageSize;
-    const pageCount = Math.ceil(greetingCount / pageSize);
+    const pageSize = 12;
+    const pageCount = Math.ceil(resultCount / pageSize);
 
     const colors = colormap({
       colormap: "portland",
@@ -82,7 +73,7 @@ class ListGreetingsCommand extends Command {
         index,
         pageSize,
         pageCount,
-        greetingCount,
+        resultCount,
         color: colors[index]
       })
     });
@@ -119,7 +110,7 @@ class ListGreetingsCommand extends Command {
             index,
             pageSize,
             pageCount,
-            greetingCount,
+            resultCount,
             color: colors[index]
           })
         });
