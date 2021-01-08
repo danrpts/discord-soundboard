@@ -4,13 +4,13 @@
   "description": "A friendly and customizable soundboard bot for Discord!",
   "main": "index.js",
   "engines": {
-    "node": "15.5.0",
-    "yarn": "1.22.10"
+    "node": "^15.5.0",
+    "yarn": "^1.22.5"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "web": "node index.js",
-    "bot": "node ./src/bot.js"
+    "start": "node ./src/bot.js"
   },
   "author": "",
   "license": "MIT",
@@ -23,7 +23,6 @@
     "discord.js-commando": "https://github.com/discordjs/Commando.git",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "ffmpeg-static": "^4.2.7",
     "keyv": "^4.0.3",
     "lodash": "^4.17.20",
     "pg": "^8.5.1",

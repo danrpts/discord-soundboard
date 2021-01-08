@@ -1,2 +1,2 @@
-web: npm run web
-bot: npm run bot
+web: yarn web
+bot: yarn start

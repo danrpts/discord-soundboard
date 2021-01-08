@@ -21,7 +21,7 @@ client.setProvider(
   )
 );
 
-if (process.env.DEBUG) {
+if (process.env.NODE_ENV !== "production") {
   client.on("debug", console.info);
 }
 
