@@ -1,0 +1,26 @@
+name: CD
+
+on:
+  push:
+    tags: [v*.*.*]
+    branch: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Setup SSH
+        uses: kielabokkie/ssh-key-and-known-hosts-action@v1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-host: ${{ secrets.DOCKER_HOST }}
+      - name: Deploy to VPS
+        run: docker-compose up -d --build --remove-orphans
+        env:
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DISCORD_OWNER_ID: ${{ secrets.DISCORD_OWNER_ID }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DOCKER_HOST: ssh://${{ secrets.DOCKER_HOST_USERNAME }}@${{ secrets.DOCKER_HOST }}

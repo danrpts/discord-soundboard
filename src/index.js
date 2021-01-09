@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const path = require("path");
 const Keyv = require("keyv");
 const KeyvProvider = require("commando-provider-keyv");
@@ -8,8 +6,8 @@ const { Sound, Greeting } = require("./models");
 const { Client } = require("discord.js-commando");
 
 const client = new Client({
-  owner: process.env.OWNER_ID,
-  commandPrefix: process.env.COMMAND_PREFIX
+  commandPrefix: "!",
+  owner: process.env.DISCORD_OWNER_ID
 });
 
 client.setProvider(

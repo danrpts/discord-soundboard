@@ -68,6 +68,10 @@ class ListCommand extends Command {
       }
     });
 
+    if (args.filter && resultCount < 1) {
+      return msg.reply("no sounds exist for that filter.");
+    }
+
     if (resultCount < 1) {
       return msg.reply("your guild's soundboard is empty.");
     }

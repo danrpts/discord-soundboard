@@ -1,6 +1,6 @@
 {
   "name": "discord-star-flute",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A friendly and customizable soundboard bot for Discord!",
   "main": "index.js",
   "engines": {
@@ -9,8 +9,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "web": "node index.js",
-    "start": "node ./src/bot.js"
+    "start": "node ./src/index.js"
   },
   "author": "",
   "license": "MIT",
@@ -21,8 +20,6 @@
     "commando-provider-keyv": "^2.1.0",
     "discord.js": "^12.5.1",
     "discord.js-commando": "https://github.com/discordjs/Commando.git",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
     "keyv": "^4.0.3",
     "lodash": "^4.17.20",
     "pg": "^8.5.1",
