@@ -8,7 +8,7 @@ class AddCommand extends Command {
       aliases: ["a"],
       group: "soundboard",
       memberName: "add",
-      description: `Add a sound to your guild's soundboard.`,
+      description: `Add a sound to your server's soundboard.`,
       guildOnly: true,
       examples: [
         `${client.commandPrefix}add flute https://www.myinstants.com/media/sounds/titanic-flute.mp3 75`

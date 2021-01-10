@@ -8,7 +8,7 @@ class RemoveGreetingCommand extends Command {
       aliases: ["rg"],
       group: "soundboard",
       memberName: "remove-greeting",
-      description: "Removes a greeting from your guild's soundboard.",
+      description: "Removes a greeting from your server's soundboard.",
       guildOnly: true,
       examples: [`${client.commandPrefix}rg \`@danny\``],
       args: [

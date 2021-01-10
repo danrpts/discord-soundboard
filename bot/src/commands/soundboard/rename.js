@@ -8,7 +8,7 @@ class RenameSoundCommand extends Command {
       aliases: ["mv", "move"],
       group: "soundboard",
       memberName: "rename",
-      description: "Rename a sound on your guild's soundboard.",
+      description: "Rename a sound on your server's soundboard.",
       guildOnly: true,
       examples: [`${client.commandPrefix}rename flute star-flute`],
       args: [

@@ -8,7 +8,7 @@ class RemoveSoundCommand extends Command {
       aliases: ["rm"],
       group: "soundboard",
       memberName: "remove",
-      description: "Removes a sound from your guild's soundboard.",
+      description: "Removes a sound from your server's soundboard.",
       guildOnly: true,
       examples: [`${client.commandPrefix}remove flute`],
       args: [

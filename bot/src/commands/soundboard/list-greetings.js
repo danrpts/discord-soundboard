@@ -1,9 +1,8 @@
 const colormap = require("colormap");
 const { MessageEmbed } = require("discord.js");
 const { Command } = require("discord.js-commando");
-const { Sound } = require("../../models");
+const { Sound, Greeting } = require("../../models");
 const { clamp } = require("lodash");
-const { Op } = require("sequelize");
 
 async function page({
   guildId,
@@ -11,22 +10,19 @@ async function page({
   pageSize,
   pageCount,
   resultCount,
-  color,
-  filter
+  color
 }) {
-  const sounds = await Sound.findAll({
+  const greetings = await Greeting.findAll({
     limit: pageSize,
     offset: pageSize * index,
-    where: {
-      guild_id: guildId,
-      ...(filter && { name: { [Op.like]: `%${filter}%` } })
-    },
-    order: [["name", "ASC"]]
+    where: { guild_id: guildId },
+    include: Sound,
+    order: [["Sound", "name", "ASC"]]
   });
 
-  const fields = sounds.map(({ name, url, volume }) => ({
-    name: name,
-    value: `[:link:](${url})` + (volume ? ` | (${volume}%)` : ""),
+  const fields = greetings.map(({ user_id, Sound, volume }) => ({
+    name: `${Sound.name} @ ${volume}%`,
+    value: user_id,
     inline: true
   }));
 
@@ -38,42 +34,26 @@ async function page({
     .setFooter(footer);
 }
 
-class ListCommand extends Command {
+class ListGreetingsCommand extends Command {
   constructor(client) {
     super(client, {
-      name: "list",
-      aliases: ["ls"],
+      name: "list-greetings",
+      aliases: ["lg"],
       group: "soundboard",
-      memberName: "list",
-      description: "List all sounds in your guild's soundboard.",
-      guildOnly: true,
-      args: [
-        {
-          key: "filter",
-          prompt: "Would you like to filter the list with a search term?",
-          default: "",
-          type: "string"
-        }
-      ]
+      memberName: "list-greetings",
+      description: "List all greetings for your server.",
+      guildOnly: true
     });
   }
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const filter = args.filter;
-    const resultCount = await Sound.count({
-      where: {
-        guild_id: guildId,
-        ...(filter && { name: { [Op.like]: `%${filter}%` } })
-      }
+    const resultCount = await Greeting.count({
+      where: { guild_id: guildId }
     });
 
-    if (args.filter && resultCount < 1) {
-      return msg.reply("no sounds exist for that filter.");
-    }
-
     if (resultCount < 1) {
-      return msg.reply("your guild's soundboard is empty.");
+      return msg.reply("your guild's greetings are empty.");
     }
 
     let index = 0;
@@ -94,8 +74,7 @@ class ListCommand extends Command {
         pageSize,
         pageCount,
         resultCount,
-        color: colors[index],
-        filter
+        color: colors[index]
       })
     });
 
@@ -132,8 +111,7 @@ class ListCommand extends Command {
             pageSize,
             pageCount,
             resultCount,
-            color: colors[index],
-            filter
+            color: colors[index]
           })
         });
 
@@ -148,4 +126,4 @@ class ListCommand extends Command {
   }
 }
 
-module.exports = ListCommand;
+module.exports = ListGreetingsCommand;

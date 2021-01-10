@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  postgres:
+  db:
     image: postgres:latest
     restart: always
     volumes:
@@ -12,18 +12,19 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
   bot:
-    build: .
+    depends_on:
+      - db
+    build:
+      context: ./bot
+    image: discord_soundboard_bot:${TAG}
     restart: always
     environment:
-      - DATABASE_URL=postgres://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
+      - DATABASE_URL=postgres://postgres:${DATABASE_PASSWORD}@db:5432/postgres
       - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - NODE_ENV=production
-    volumes:
-      - ./:/code
-    depends_on:
-      - postgres
 
 volumes:
   pgdata:

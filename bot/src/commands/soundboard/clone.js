@@ -36,7 +36,7 @@ class CloneCommand extends Command {
       aliases: ["c"],
       group: "soundboard",
       memberName: "clone",
-      description: "Clone a soundboard from one guild to another.",
+      description: "Clone a soundboard from one server to another.",
       guildOnly: true,
       args: [
         {

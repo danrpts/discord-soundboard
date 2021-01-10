@@ -1,9 +1,9 @@
-name: CD
+name: Deploy release to production
 
 on:
-  push:
-    tags: [v*.*.*]
-    branch: [main]
+  release:
+    types:
+      - published
 
 jobs:
   deploy:
@@ -20,6 +20,7 @@ jobs:
       - name: Deploy to VPS
         run: docker-compose up -d --build --remove-orphans
         env:
+          TAG: ${{ github.event.release.tag_name }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DISCORD_OWNER_ID: ${{ secrets.DISCORD_OWNER_ID }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}

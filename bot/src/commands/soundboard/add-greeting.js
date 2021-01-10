@@ -9,7 +9,7 @@ class AddGreetingCommand extends Command {
       group: "soundboard",
       memberName: "add-greeting",
       description:
-        "Add a greeting for the mentioned user when entering the voice channel.",
+        "Add a greeting for the @mentioned user when entering the voice channel.",
       guildOnly: true,
       examples: [`${client.commandPrefix}g \`@danny\` trumpet`],
       args: [

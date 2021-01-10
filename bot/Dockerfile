@@ -1,11 +1,11 @@
 FROM node:alpine
 
-WORKDIR /discord-star-flute
+WORKDIR ./bot
 
 COPY package.json yarn.lock ./
 
 RUN apk add --no-cache git ffmpeg opus && yarn --prod
 
-COPY . .
+COPY ./src ./src
 
 CMD ["yarn", "start"]
