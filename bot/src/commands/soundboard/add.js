@@ -43,7 +43,7 @@ class AddCommand extends Command {
     const url = args.url;
 
     const sound = await Sound.findOne({
-      where: { guild_id: guildId, name: name }
+      where: { guild_id: guildId, name }
     });
 
     if (sound) {

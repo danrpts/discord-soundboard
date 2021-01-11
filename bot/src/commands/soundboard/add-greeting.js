@@ -42,7 +42,7 @@ class AddGreetingCommand extends Command {
     const name = args.name.toLowerCase();
 
     const sound = await Sound.findOne({
-      where: { guild_id: guildId, name: name }
+      where: { guild_id: guildId, name }
     });
 
     if (!sound) {

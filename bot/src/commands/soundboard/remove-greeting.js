@@ -23,10 +23,10 @@ class RemoveGreetingCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const user = args.user;
+    const userId = args.user.toString();
 
     const destroyedCount = await Greeting.destroy({
-      where: { guild_id: guildId, user_id: user.toString() },
+      where: { guild_id: guildId, user_id: userId },
       limit: 1
     });
 

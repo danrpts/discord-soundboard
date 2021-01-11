@@ -19,13 +19,13 @@ async function page({
     offset: pageSize * index,
     where: {
       guild_id: guildId,
-      ...(filter && { name: { [Op.like]: `%${filter}%` } })
+      ...(filter && { name: { [Op.like]: `%${filter.toLowerCase()}%` } })
     },
     order: [["name", "ASC"]]
   });
 
   const fields = sounds.map(({ name, url, volume }) => ({
-    name: name,
+    name,
     value: `[:link:](${url})` + (volume ? ` | (${volume}%)` : ""),
     inline: true
   }));
@@ -64,7 +64,7 @@ class ListCommand extends Command {
     const resultCount = await Sound.count({
       where: {
         guild_id: guildId,
-        ...(filter && { name: { [Op.like]: `%${filter}%` } })
+        ...(filter && { name: { [Op.like]: `%${filter.toLowerCase()}%` } })
       }
     });
 

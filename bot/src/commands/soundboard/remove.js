@@ -26,7 +26,7 @@ class RemoveSoundCommand extends Command {
     const name = args.name.toLowerCase();
 
     const destroyedCount = await Sound.destroy({
-      where: { guild_id: guildId, name: name },
+      where: { guild_id: guildId, name },
       limit: 1
     });
 
