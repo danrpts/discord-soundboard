@@ -1,6 +1,6 @@
 {
   "name": "discord-soundboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A friendly and customizable soundboard bot for Discord!",
   "main": "index.js",
   "engines": {

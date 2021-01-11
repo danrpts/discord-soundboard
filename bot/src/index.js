@@ -51,10 +51,6 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
       const volume = greeting.volume || greeting.Sound.volume;
 
-      console.log(
-        `playing ${greeting.Sound.name} (${greeting.Sound.url}) ${volume}%`
-      );
-
       connection.play(greeting.Sound.url, {
         quality: "highestaudio",
         volume: volume / 100

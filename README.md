@@ -11,7 +11,16 @@ A friendly and customizable soundboard bot for Discord! 🤖
 
 ## One-Click Bot
 
-Are you in? Just [follow this link](https://discord.com/oauth2/authorize?client_id=792651273387638815&permissions=8192&scope=bot). Please provide the bot with "Manage Messages" permission for a better experience while using the `!list` commands.
+<p>
+  <a href="https://discord.com/oauth2/authorize?client_id=792651273387638815&permissions=8192&scope=bot">
+    <img align="left" src="/soundbyte.png" width="100" height="100" alt="SoundByte Avatar" />
+  </a>
+
+  <br/>
+SoundByte is ready to join your server at <a href="https://discord.com/oauth2/authorize?client_id=792651273387638815&permissions=8192&scope=bot">the click of a link</a>. Please provide the bot with "Manage Messages" permission for the best experience while using the <code>!list</code> command.
+
+</p>
+<br/>
 
 ## Usage
 

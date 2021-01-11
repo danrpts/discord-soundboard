@@ -50,8 +50,6 @@ class PlayCommand extends Command {
 
     const volume = Math.floor(args.volume) || sound.volume;
 
-    console.log(`playing ${sound.name} (${sound.url}) ${volume}%`);
-
     const dispatcher = connection.play(sound.url, {
       quality: "highestaudio",
       volume: volume / 100
