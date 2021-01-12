@@ -1,5 +1,12 @@
+const Queue = require("bee-queue");
 const { Command } = require("discord.js-commando");
+
 const { Sound } = require("../../models");
+const soundQueue = new Queue("sounds", {
+  redis: {
+    host: process.env.REDIS_HOST
+  }
+});
 
 class PlayCommand extends Command {
   constructor(client) {
@@ -37,9 +44,6 @@ class PlayCommand extends Command {
       return msg.reply("please join a voice channel to play that sound.");
     }
 
-    const connection = await voiceChannel.join();
-    await connection.voice.setSelfDeaf(true);
-
     const sound = await Sound.findOne({
       where: { guild_id: guildId, name: args.name.toLowerCase() }
     });
@@ -50,12 +54,14 @@ class PlayCommand extends Command {
 
     const volume = Math.floor(args.volume) || sound.volume;
 
-    const dispatcher = connection.play(sound.url, {
-      quality: "highestaudio",
-      volume: volume / 100
-    });
-
-    dispatcher.on("start", async () => msg.react("👍"));
+    await soundQueue
+      .createJob({
+        guildId,
+        memberId: msg.member.id,
+        url: sound.url,
+        volume
+      })
+      .save();
   }
 }
 

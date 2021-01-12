@@ -1,9 +1,10 @@
 const path = require("path");
 const Keyv = require("keyv");
+const Queue = require("bee-queue");
 const KeyvProvider = require("commando-provider-keyv");
-const { Sound, Greeting } = require("./models");
-
 const { Client } = require("discord.js-commando");
+
+const { Sound, Greeting } = require("./models");
 
 const client = new Client({
   commandPrefix: "!",
@@ -18,6 +19,12 @@ client.setProvider(
     })
   )
 );
+
+const soundQueue = new Queue("sounds", {
+  redis: {
+    host: process.env.REDIS_HOST
+  }
+});
 
 if (process.env.NODE_ENV !== "production") {
   client.on("debug", console.info);
@@ -45,17 +52,20 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
       include: Sound
     });
 
-    if (greeting) {
-      const connection = await newState.channel.join();
-      await newState.setSelfDeaf(true);
-
-      const volume = greeting.volume || greeting.Sound.volume;
-
-      connection.play(greeting.Sound.url, {
-        quality: "highestaudio",
-        volume: volume / 100
-      });
+    if (!greeting) {
+      return;
     }
+
+    const volume = greeting.volume || greeting.Sound.volume;
+
+    await soundQueue
+      .createJob({
+        guildId,
+        memberId: newState.member.id,
+        url: greeting.Sound.url,
+        volume
+      })
+      .save();
   }
 });
 
