@@ -2,11 +2,6 @@ const Queue = require("bee-queue");
 const { Command } = require("discord.js-commando");
 
 const { Sound } = require("../../models");
-const soundQueue = new Queue("sounds", {
-  redis: {
-    host: process.env.REDIS_HOST
-  }
-});
 
 class PlayCommand extends Command {
   constructor(client) {
@@ -52,9 +47,16 @@ class PlayCommand extends Command {
       return msg.reply("that sounds does not exist.");
     }
 
+    const queue = new Queue("sounds", {
+      redis: {
+        host: process.env.REDIS_HOST
+      },
+      isWorker: false
+    });
+
     const volume = Math.floor(args.volume) || sound.volume;
 
-    await soundQueue
+    await queue
       .createJob({
         guildId,
         memberId: msg.member.id,
