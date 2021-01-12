@@ -36,6 +36,26 @@ client.on("ready", () => {
   console.log(
     `${client.user.username}#${client.user.discriminator} (${client.user.id}) ready.`
   );
+
+  soundQueue.process(async job => {
+    console.log(job.data);
+
+    const guild = await client.guilds.fetch(job.data.guildId);
+    const member = await guild.members.fetch(job.data.memberId);
+    console.log(!!member);
+    const connection = await member.voice.channel.join();
+    console.log(!!connection);
+    await connection.voice.setSelfDeaf(true);
+
+    const dispatcher = connection.play(job.data.url, {
+      quality: "highestaudio",
+      volume: job.data.volume / 100
+    });
+
+    return new Promise(resolve => {
+      dispatcher.on("finish", () => resolve());
+    });
+  });
 });
 
 client.on("voiceStateUpdate", async (oldState, newState) => {
