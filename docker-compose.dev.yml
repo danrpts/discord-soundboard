@@ -5,11 +5,11 @@ services:
     environment:
       - POSTGRES_PASSWORD=postgres
 
-  player:
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - ./player/src:/player/src
+  # player:
+  #   environment:
+  #     - NODE_ENV=development
+  #   volumes:
+  #     - ./player/src:/player/src
 
   bot:
     environment:

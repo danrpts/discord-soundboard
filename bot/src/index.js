@@ -1,11 +1,10 @@
 const path = require("path");
-const Queue = require("bee-queue");
 const { Client } = require("discord.js-commando");
 
 const { Sound, Greeting } = require("./models");
 
 const client = new Client({
-  commandPrefix: "!",
+  commandPrefix: "$",
   owner: process.env.DISCORD_OWNER_ID
 });
 
@@ -39,23 +38,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
       return;
     }
 
-    const queue = new Queue("sounds", {
-      redis: {
-        host: process.env.REDIS_HOST
-      },
-      worker: false
-    });
-
     const volume = greeting.volume || greeting.Sound.volume;
-
-    await queue
-      .createJob({
-        guildId,
-        memberId: newState.member.id,
-        url: greeting.Sound.url,
-        volume
-      })
-      .save();
   }
 });
 

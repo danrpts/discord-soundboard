@@ -1,7 +1,16 @@
-const Queue = require("bee-queue");
+const redis = require("redis");
 const { Command } = require("discord.js-commando");
+const { promisify } = require("util");
 
 const { Sound } = require("../../models");
+
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST
+});
+
+const get = promisify(redisClient.get).bind(redisClient);
+const set = promisify(redisClient.set).bind(redisClient);
+const del = promisify(redisClient.del).bind(redisClient);
 
 class PlayCommand extends Command {
   constructor(client) {
@@ -47,23 +56,75 @@ class PlayCommand extends Command {
       return msg.reply("that sounds does not exist.");
     }
 
-    const queue = new Queue("sounds", {
-      redis: {
-        host: process.env.REDIS_HOST
-      },
-      isWorker: false
-    });
+    const volume = (Math.floor(args.volume) || sound.volume) / 100;
 
-    const volume = Math.floor(args.volume) || sound.volume;
+    const isGuildPlaying = await get(guildId);
 
-    await queue
-      .createJob({
-        guildId,
-        memberId: msg.member.id,
+    if (isGuildPlaying) {
+      const payload = JSON.stringify({
         url: sound.url,
+        name: sound.name,
         volume
-      })
-      .save();
+      });
+
+      const publisher = redis.createClient({
+        host: process.env.REDIS_HOST
+      });
+
+      publisher.publish(guildId, payload);
+
+      publisher.quit();
+    } else {
+      const connection = await voiceChannel.join();
+      await connection.voice.setSelfDeaf(true);
+
+      this.queue = [
+        {
+          url: sound.url,
+          name: sound.name,
+          volume
+        }
+      ];
+
+      const subscriber = redis.createClient({
+        host: process.env.REDIS_HOST
+      });
+
+      subscriber.on("message", async (channel, payload) => {
+        this.queue.push(JSON.parse(payload));
+      });
+
+      subscriber.subscribe(guildId);
+
+      while (this.queue.length) {
+        const data = this.queue.shift();
+
+        await set(guildId, data.name);
+
+        await msg.client.user.setPresence({
+          activity: {
+            type: "PLAYING",
+            name: data.name,
+            url: data.sound
+          }
+        });
+
+        const dispatcher = connection.play(data.url, {
+          volume: data.volume,
+          quality: "highestaudio"
+        });
+
+        await new Promise(resolve => {
+          dispatcher.on("finish", () => resolve());
+        });
+
+        await del(guildId);
+
+        subscriber.quit();
+      }
+
+      await msg.client.user.setPresence({});
+    }
   }
 }
 

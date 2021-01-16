@@ -21,21 +21,21 @@ services:
     ports:
       - 6379:6379
 
-  player:
-    build:
-      context: ./player
-    image: discord_soundboard_player:${TAG}
-    restart: always
-    environment:
-      - REDIS_HOST=redis
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - NODE_ENV=production
+  # player:
+  #   build:
+  #     context: ./player
+  #   image: discord_soundboard_player:${TAG}
+  #   restart: always
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - DISCORD_TOKEN=${DISCORD_TOKEN}
+  #     - NODE_ENV=production
 
   bot:
     depends_on:
       - db
       - redis
-      - player
+      # - player
     build:
       context: ./bot
     image: discord_soundboard_bot:${TAG}
