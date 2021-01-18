@@ -1,16 +1,7 @@
-const redis = require("redis");
 const { Command } = require("discord.js-commando");
-const { promisify } = require("util");
 
+const Player = require("../../player.js");
 const { Sound } = require("../../models");
-
-const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST
-});
-
-const get = promisify(redisClient.get).bind(redisClient);
-const set = promisify(redisClient.set).bind(redisClient);
-const del = promisify(redisClient.del).bind(redisClient);
 
 class PlayCommand extends Command {
   constructor(client) {
@@ -58,73 +49,12 @@ class PlayCommand extends Command {
 
     const volume = (Math.floor(args.volume) || sound.volume) / 100;
 
-    const isGuildPlaying = await get(guildId);
-
-    if (isGuildPlaying) {
-      const payload = JSON.stringify({
-        url: sound.url,
-        name: sound.name,
-        volume
-      });
-
-      const publisher = redis.createClient({
-        host: process.env.REDIS_HOST
-      });
-
-      publisher.publish(guildId, payload);
-
-      publisher.quit();
-    } else {
-      const connection = await voiceChannel.join();
-      await connection.voice.setSelfDeaf(true);
-
-      this.queue = [
-        {
-          url: sound.url,
-          name: sound.name,
-          volume
-        }
-      ];
-
-      const subscriber = redis.createClient({
-        host: process.env.REDIS_HOST
-      });
-
-      subscriber.on("message", async (channel, payload) => {
-        this.queue.push(JSON.parse(payload));
-      });
-
-      subscriber.subscribe(guildId);
-
-      while (this.queue.length) {
-        const data = this.queue.shift();
-
-        await set(guildId, data.name);
-
-        await msg.client.user.setPresence({
-          activity: {
-            type: "PLAYING",
-            name: data.name,
-            url: data.sound
-          }
-        });
-
-        const dispatcher = connection.play(data.url, {
-          volume: data.volume,
-          quality: "highestaudio"
-        });
-
-        await new Promise(resolve => {
-          dispatcher.on("finish", () => resolve());
-        });
-
-        await del(guildId);
-
-        subscriber.quit();
-      }
-
-      await msg.client.user.setPresence({});
-    }
+    const player = new Player(msg, guildId);
+    return player.play({
+      url: sound.url,
+      name: sound.name,
+      volume
+    });
   }
 }
 

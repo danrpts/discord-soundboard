@@ -11,13 +11,14 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
+    "bot": "^0.0.3",
     "colormap": "^2.3.1",
     "discord.js": "^12.5.1",
     "discord.js-commando": "https://github.com/discordjs/Commando.git",
+    "ioredis": "^4.19.4",
     "lodash": "^4.17.20",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
-    "redis": "^3.0.2",
     "sequelize": "^6.3.5"
   }
 }
