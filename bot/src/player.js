@@ -2,8 +2,8 @@ const Redis = require("ioredis");
 const Redlock = require("redlock");
 
 class Player {
-  constructor(msg, guildId) {
-    this.msg = msg;
+  constructor(channel, guildId) {
+    this.channel = channel;
     this.guildId = guildId;
     this.client = new Redis({
       host: process.env.REDIS_HOST
@@ -13,14 +13,7 @@ class Player {
     this.lockKey + `${this.guildId}:lock`;
   }
 
-  async play({ url, name, volume }) {
-    const length = await this.client.rpush(
-      this.listKey,
-      JSON.stringify({ url, name, volume })
-    );
-
-    await this.msg.react("👍");
-
+  async start() {
     try {
       const lock = await this.redlock.lock(this.lockKey, 5000);
 
@@ -31,24 +24,21 @@ class Player {
       subscriber.on("message", async (channel, message) => {
         console.info("[STREAMER] received:", message);
         switch (message) {
-          case "skip":
-            this.dispatcher.end();
-            break;
-          case "clear":
-            this.dispatcher.end();
-            await this.client.del(this.listKey);
-            await lock.unlock();
+          case "stop":
+            if (this.dispatcher) {
+              this.dispatcher.end();
+            }
             break;
         }
       });
 
       console.info("[STREAMER] up:", this.guildId);
-      const connection = await this.msg.member.voice.channel.join();
+      const connection = await this.channel.join();
       await connection.voice.setSelfDeaf(true);
 
-      while ((await this.client.llen(this.listKey)) > 0) {
-        const sound = JSON.parse(await this.client.lindex(this.listKey, 0));
-
+      let payload;
+      while ((payload = await this.client.lpop(this.listKey))) {
+        const sound = JSON.parse(payload);
         console.info("[STREAMER] processing:", this.guildId, sound);
 
         this.dispatcher = connection.play(sound.url, {
@@ -69,8 +59,6 @@ class Player {
           this.dispatcher.on("finish", () => resolve());
           this.dispatcher.on("error", () => reject());
         });
-
-        await this.client.lpop(this.listKey);
       }
 
       await lock.unlock();
@@ -80,21 +68,37 @@ class Player {
     }
   }
 
+  async unshift({ url, name, volume }) {
+    await this.client.lpush(
+      this.listKey,
+      JSON.stringify({ url, name, volume })
+    );
+
+    await this.client.publish(this.guildId, "stop");
+
+    this.start();
+  }
+
+  async enqueue({ url, name, volume }) {
+    await this.client.rpush(
+      this.listKey,
+      JSON.stringify({ url, name, volume })
+    );
+
+    this.start();
+  }
+
   async skip() {
-    await this.client.publish(this.guildId, "skip");
-    await this.msg.react("👍");
+    await this.client.publish(this.guildId, "stop");
   }
 
   async clear() {
-    await this.client.publish(this.guildId, "clear");
-    await this.msg.react("👍");
+    await this.client.del(this.listKey);
+    await this.client.publish(this.guildId, "stop");
   }
 
   async list() {
-    const list = await this.client.lrange(this.listKey, 0, -1);
-    await this.msg.reply(
-      JSON.stringify(list.map(payload => JSON.parse(payload).name))
-    );
+    return this.client.lrange(this.listKey, 0, -1);
   }
 }
 

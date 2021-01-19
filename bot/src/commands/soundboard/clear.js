@@ -18,7 +18,8 @@ class ClearCommand extends Command {
     const guildId = msg.guild.id;
 
     const player = new Player(msg, guildId);
-    return player.clear();
+    await player.clear();
+    await msg.react("👍");
   }
 }
 

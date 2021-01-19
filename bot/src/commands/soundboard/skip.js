@@ -18,7 +18,8 @@ class SkipCommand extends Command {
     const guildId = msg.guild.id;
 
     const player = new Player(msg, guildId);
-    return player.skip();
+    await player.skip();
+    await msg.react("👍");
   }
 }
 

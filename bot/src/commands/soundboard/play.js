@@ -33,9 +33,9 @@ class PlayCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const voiceChannel = msg.member.voice.channel;
+    const channel = msg.member.voice.channel;
 
-    if (!voiceChannel) {
+    if (!channel) {
       return msg.reply("please join a voice channel to play that sound.");
     }
 
@@ -49,12 +49,13 @@ class PlayCommand extends Command {
 
     const volume = (Math.floor(args.volume) || sound.volume) / 100;
 
-    const player = new Player(msg, guildId);
-    return player.play({
+    const player = new Player(channel, guildId);
+    await player.enqueue({
       url: sound.url,
       name: sound.name,
       volume
     });
+    await msg.react("👍");
   }
 }
 

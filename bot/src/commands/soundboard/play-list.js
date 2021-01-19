@@ -20,7 +20,8 @@ class PlayListCommand extends Command {
     const guildId = msg.guild.id;
 
     const player = new Player(msg, guildId);
-    return player.list();
+    const list = await player.list();
+    await msg.reply(list);
   }
 }
 
