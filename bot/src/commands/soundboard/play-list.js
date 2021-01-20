@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando");
 
-const Player = require("../../player.js");
+const Queue = require("../../Queue.js");
 const { Sound } = require("../../models");
 
 class PlayListCommand extends Command {
@@ -18,9 +18,8 @@ class PlayListCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-
-    const player = new Player(msg, guildId);
-    const list = await player.list();
+    const queue = new Queue(msg, guildId);
+    const list = await queue.list();
     await msg.reply(list);
   }
 }

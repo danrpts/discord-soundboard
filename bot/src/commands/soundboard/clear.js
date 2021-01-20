@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando");
 
-const Player = require("../../player.js");
+const Queue = require("../../queue.js");
 
 class ClearCommand extends Command {
   constructor(client) {
@@ -16,9 +16,8 @@ class ClearCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-
-    const player = new Player(msg, guildId);
-    await player.clear();
+    const queue = new Queue(msg, guildId);
+    await queue.clear();
     await msg.react("👍");
   }
 }

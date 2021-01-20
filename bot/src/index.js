@@ -1,7 +1,7 @@
 const path = require("path");
 const { Client } = require("discord.js-commando");
 
-const Player = require("./player.js");
+const Queue = require("./queue.js");
 
 const { Sound, Greeting } = require("./models");
 
@@ -42,8 +42,8 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
     const volume = (greeting.volume || greeting.Sound.volume) / 100;
 
-    const player = new Player(newState.channel, guildId);
-    await player.unshift({
+    const queue = new Queue(newState.channel, guildId);
+    await queue.unshift({
       url: greeting.Sound.url,
       name: greeting.Sound.name,
       volume

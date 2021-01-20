@@ -1,6 +1,5 @@
 const { Command } = require("discord.js-commando");
-
-const Player = require("../../player.js");
+const Queue = require("../../queue.js");
 const { Sound } = require("../../models");
 
 class PlayCommand extends Command {
@@ -49,8 +48,8 @@ class PlayCommand extends Command {
 
     const volume = (Math.floor(args.volume) || sound.volume) / 100;
 
-    const player = new Player(channel, guildId);
-    await player.enqueue({
+    const queue = new Queue(channel, guildId);
+    await queue.enqueue({
       url: sound.url,
       name: sound.name,
       volume

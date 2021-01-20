@@ -1,6 +1,5 @@
 const { Command } = require("discord.js-commando");
-
-const Player = require("../../player.js");
+const Queue = require("../../queue.js");
 
 class SkipCommand extends Command {
   constructor(client) {
@@ -16,9 +15,8 @@ class SkipCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-
-    const player = new Player(msg, guildId);
-    await player.skip();
+    const queue = new Queue(msg, guildId);
+    await queue.skip();
     await msg.react("👍");
   }
 }
