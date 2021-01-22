@@ -57,6 +57,7 @@ All configuration for the bot is provided through environment variables. The tab
 Now, you're ready. Set the `DISCORD_TOKEN` environment variable and use `docker-compose` from the root of your project directory:
 
 ```
+TAG=dev\
 DISCORD_TOKEN="place_your_bot_token_here"\
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```

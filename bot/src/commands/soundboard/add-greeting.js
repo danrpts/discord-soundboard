@@ -5,7 +5,7 @@ class AddGreetingCommand extends Command {
   constructor(client) {
     super(client, {
       name: "add-greeting",
-      aliases: ["g"],
+      aliases: ["ag"],
       group: "soundboard",
       memberName: "add-greeting",
       description:

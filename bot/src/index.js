@@ -1,23 +1,12 @@
 const path = require("path");
-const Keyv = require("keyv");
-const KeyvProvider = require("commando-provider-keyv");
+const { Client } = require("discord.js-commando");
+const { play } = require("./queue.js");
 const { Sound, Greeting } = require("./models");
 
-const { Client } = require("discord.js-commando");
-
 const client = new Client({
-  commandPrefix: "!",
+  commandPrefix: "$",
   owner: process.env.DISCORD_OWNER_ID
 });
-
-client.setProvider(
-  new KeyvProvider(
-    new Keyv(process.env.DATABASE_URL, {
-      table: "settings",
-      namespace: "guildId"
-    })
-  )
-);
 
 if (process.env.NODE_ENV !== "production") {
   client.on("debug", console.info);
@@ -45,17 +34,17 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
       include: Sound
     });
 
-    if (greeting) {
-      const connection = await newState.channel.join();
-      await newState.setSelfDeaf(true);
-
-      const volume = greeting.volume || greeting.Sound.volume;
-
-      connection.play(greeting.Sound.url, {
-        quality: "highestaudio",
-        volume: volume / 100
-      });
+    if (!greeting) {
+      return;
     }
+
+    const volume = (greeting.volume || greeting.Sound.volume) / 100;
+
+    await play(newState.channel, {
+      url: greeting.Sound.url,
+      name: greeting.Sound.name,
+      volume
+    });
   }
 });
 

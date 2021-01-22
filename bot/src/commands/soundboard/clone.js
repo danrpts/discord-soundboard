@@ -33,7 +33,6 @@ class CloneCommand extends Command {
   constructor(client) {
     super(client, {
       name: "clone",
-      aliases: ["c"],
       group: "soundboard",
       memberName: "clone",
       description: "Clone a soundboard from one server to another.",

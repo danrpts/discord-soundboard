@@ -13,18 +13,40 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
 
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - redisdata:/var/lib/redis/data
+    ports:
+      - 6379:6379
+
+  # player:
+  #   build:
+  #     context: ./player
+  #   image: discord_soundboard_player:${TAG}
+  #   restart: always
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - DISCORD_TOKEN=${DISCORD_TOKEN}
+  #     - NODE_ENV=production
+
   bot:
     depends_on:
       - db
+      - redis
+      # - player
     build:
       context: ./bot
     image: discord_soundboard_bot:${TAG}
     restart: always
     environment:
       - DATABASE_URL=postgres://postgres:${DATABASE_PASSWORD}@db:5432/postgres
+      - REDIS_HOST=redis
       - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - NODE_ENV=production
 
 volumes:
   pgdata:
+  redisdata:

@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando");
+const { play } = require("../../queue.js");
 const { Sound } = require("../../models");
 
 class PlayCommand extends Command {
@@ -31,14 +32,11 @@ class PlayCommand extends Command {
 
   async run(msg, args) {
     const guildId = msg.guild.id;
-    const voiceChannel = msg.member.voice.channel;
+    const channel = msg.member.voice.channel;
 
-    if (!voiceChannel) {
+    if (!channel) {
       return msg.reply("please join a voice channel to play that sound.");
     }
-
-    const connection = await voiceChannel.join();
-    await connection.voice.setSelfDeaf(true);
 
     const sound = await Sound.findOne({
       where: { guild_id: guildId, name: args.name.toLowerCase() }
@@ -48,14 +46,15 @@ class PlayCommand extends Command {
       return msg.reply("that sounds does not exist.");
     }
 
-    const volume = Math.floor(args.volume) || sound.volume;
+    const volume = (Math.floor(args.volume) || sound.volume) / 100;
 
-    const dispatcher = connection.play(sound.url, {
-      quality: "highestaudio",
-      volume: volume / 100
+    await play(channel, {
+      url: sound.url,
+      name: sound.name,
+      volume
     });
 
-    dispatcher.on("start", async () => msg.react("👍"));
+    await msg.react("👍");
   }
 }
 
