@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando");
 
-const Queue = require("../../queue.js");
+const { clear } = require("../../queue.js");
 
 class ClearCommand extends Command {
   constructor(client) {
@@ -15,9 +15,11 @@ class ClearCommand extends Command {
   }
 
   async run(msg, args) {
-    const guildId = msg.guild.id;
-    const queue = new Queue(msg, guildId);
-    await queue.clear();
+    const channel = msg.member.voice.channel;
+    if (!channel) {
+      return msg.reply("please join a voice channel to clear the queue.");
+    }
+    await clear(channel);
     await msg.react("👍");
   }
 }

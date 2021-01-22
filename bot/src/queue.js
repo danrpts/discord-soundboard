@@ -1,118 +1,73 @@
 const Redis = require("ioredis");
 const Redlock = require("redlock");
-const EventEmitter = require("events");
-const { isFunction } = require("lodash");
 
-const client = new Redis({
+const queue = new Redis({
   host: process.env.REDIS_HOST
 });
 
-const redlock = new Redlock([client]);
+const redlock = new Redlock([queue]);
 
-const subscriber = new Redis({
-  host: process.env.REDIS_HOST
-});
+async function play(channel, sound) {
+  await queue.rpush(channel.id, JSON.stringify(sound));
 
-class Player extends EventEmitter {
-  constructor(channel) {
-    super();
-    this.channel = channel;
-  }
+  try {
+    const lock = await redlock.lock(`${channel.id}:lock`, 5000);
 
-  async start({ url, name, volume }) {
-    const connection = await this.channel.join();
+    const subscriber = new Redis({
+      host: process.env.REDIS_HOST
+    });
+
+    const connection = await channel.join();
     await connection.voice.setSelfDeaf(true);
 
-    this.dispatcher = connection.play(url, {
-      volume,
-      quality: "highestaudio"
-    });
+    let payload;
+    while ((payload = await queue.lpop(channel.id))) {
+      const { url, name, volume } = JSON.parse(payload);
 
-    this.dispatcher.on("drain", () => {
-      this.emit("drain");
-    });
-
-    await new Promise((resolve, reject) => {
-      this.dispatcher.on("finish", () => resolve());
-      this.dispatcher.on("error", () => reject());
-    });
-  }
-
-  stop() {
-    if (this.dispatcher) {
-      this.dispatcher.end();
-    }
-  }
-}
-
-class Queue {
-  constructor(channel, guildId) {
-    this.channel = channel;
-    this.guildId = guildId;
-    this.listKey = `${this.guildId}:list`;
-    this.lockKey = `${this.guildId}:lock`;
-    this.playerKey = `${this.guildId}:player`;
-  }
-
-  async process() {
-    try {
-      const lock = await redlock.lock(this.lockKey, 5000);
-
-      const player = new Player(this.channel);
-
-      player.on("drain", () => {
-        lock.extend(1000);
+      const dispatcher = connection.play(url, {
+        volume,
+        quality: "highestaudio"
       });
 
-      subscriber.on("message", (_, msg) => {
-        if (isFunction(player[msg])) {
-          player[msg]();
+      dispatcher.on("drain", () => lock.extend(1000));
+
+      subscriber.on("message", async (_, cmd) => {
+        switch (cmd) {
+          case "skip":
+            dispatcher.end();
+            break;
+          case "clear":
+            await queue.del(channel.id);
+            dispatcher.end();
+            break;
         }
       });
 
-      subscriber.subscribe(this.playerKey);
+      subscriber.subscribe(channel.id);
 
-      let payload;
-      while ((payload = await client.lpop(this.listKey))) {
-        const sound = JSON.parse(payload);
-        await player.start(sound);
-      }
-
-      await lock.unlock();
-    } catch (err) {
-      console.error(err);
-      // cannot lock
-      // cannot extend lock
-      // play errored
-      // cannot unlock
-      // misc
+      await new Promise((resolve, reject) =>
+        dispatcher.on("finish", resolve).on("error", reject)
+      );
     }
-  }
 
-  async unshift(sound) {
-    const payload = JSON.stringify(sound);
-    await client.lpush(this.listKey, payload);
-    this.process();
-  }
-
-  async enqueue(sound) {
-    const payload = JSON.stringify(sound);
-    await client.rpush(this.listKey, payload);
-    this.process();
-  }
-
-  async skip() {
-    await client.publish(this.playerKey, "stop");
-  }
-
-  async clear() {
-    await client.del(this.listKey);
-    await client.publish(this.playerKey, "stop");
-  }
-
-  async list() {
-    return client.lrange(this.listKey, 0, -1);
+    subscriber.disconnect();
+    connection.disconnect();
+    await lock.unlock();
+  } catch (err) {
+    console.error(err);
   }
 }
 
-module.exports = Queue;
+async function list(channel) {
+  const list = await queue.lrange(channel.id, 0, -1);
+  return list.map(payload => JSON.parse(payload).name);
+}
+
+function _publish(channel, cmd) {
+  return queue.publish(channel.id, cmd);
+}
+
+const skip = channel => _publish(channel, "skip");
+const clear = channel => _publish(channel, "clear");
+
+module.exports = { play, list, skip, clear };

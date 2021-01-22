@@ -1,6 +1,5 @@
 const { Command } = require("discord.js-commando");
-
-const Queue = require("../../Queue.js");
+const { list } = require("../../queue.js");
 const { Sound } = require("../../models");
 
 class PlayListCommand extends Command {
@@ -17,10 +16,11 @@ class PlayListCommand extends Command {
   }
 
   async run(msg, args) {
-    const guildId = msg.guild.id;
-    const queue = new Queue(msg, guildId);
-    const list = await queue.list();
-    await msg.reply(list);
+    const channel = msg.member.voice.channel;
+    if (!channel) {
+      return msg.reply("please join a voice channel to list its sound queue.");
+    }
+    await msg.reply(await list(channel));
   }
 }
 

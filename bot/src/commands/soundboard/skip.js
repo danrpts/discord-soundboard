@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando");
-const Queue = require("../../queue.js");
+const { skip } = require("../../queue.js");
 
 class SkipCommand extends Command {
   constructor(client) {
@@ -14,9 +14,13 @@ class SkipCommand extends Command {
   }
 
   async run(msg, args) {
-    const guildId = msg.guild.id;
-    const queue = new Queue(msg, guildId);
-    await queue.skip();
+    const channel = msg.member.voice.channel;
+
+    if (!channel) {
+      return msg.reply("please join a voice channel to skip current sound.");
+    }
+
+    await skip(channel);
     await msg.react("👍");
   }
 }
